@@ -7,7 +7,6 @@
 #include "stack.h"
 #include "queue.h"
 
-
 // turn equation to postfix
 int make_OutputQueue(Stack* op_stack, Queue* outQueue); // returns number of tokens or -1 if fails
 int getPrec(char* tok);
@@ -17,6 +16,7 @@ void cleanStack(Stack* op_stack, Queue* outQueue);
 double evaluate_postfix(Stack* eval_stack, Queue* outQueue);
 double comp_expression(char* op, char* first, char* last);
 void compare_operators(int prec, Stack* op_stack, Queue* outQueue);
+
 
 int main(void) 
 {

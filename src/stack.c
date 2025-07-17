@@ -6,95 +6,55 @@
 
 #include "../include/stack.h"
 
-const int STACK_ELEM_SIZE = 64;
-
 void allocStack(Stack* stack) 
 {
     assert(stack->capacity != 0);
-    stack->top = malloc(stack->capacity * sizeof(char*));
+    stack->top = malloc(stack->capacity * sizeof(Tok));
+    
     if (!stack->top) {
-        printf("Stack Error: Failed allocating the pointer");
-    }
-
-    for (int i = 0; i < stack->capacity; i++) 
-    {
-        stack->top[i] = malloc(sizeof(char) * STACK_ELEM_SIZE);
-        if (!stack->top[i]) {
-            printf("Stack Error: failed reallocating memory for a string");
-            exit(1); 
-        }
+        printf("STACK ERROR: Failed allocating the pointer");
     }
 }
 
-void push(Stack* stack, char* op) 
+void push(Stack* stack, Tok tok) 
 {
     int index;
-    if (stack->count == -1) {
-        index = 0;
-        stack->count = 0;
-    } else {
-        if(stack->count == stack->capacity) {
-            resizeStack(stack); 
+    if(stack->count == stack->capacity) {
+        stack->capacity *=2;
+        stack->top = realloc(stack->top, sizeof(Tok) * stack->capacity); 
+        
+        if (!stack->top) {
+            printf("STACK ERROR: failed reallocation");
+            exit(1);
         }
-        index = stack->count;
     }
 
     index = stack->count;
-    strcpy(stack->top[index], op);
+    stack->top[index] = tok;
     stack->count++;
     
     
 }
 
-char* pop(Stack* stack) 
+Tok pop(Stack* stack) 
 {
     assert(stack->count!=0);
 
-    char* op = stack->top[stack->count-1];
+    Tok tok = stack->top[stack->count-1];
     stack->count--;
-    return op;
-}
-
-void resizeStack(Stack* stack) 
-{
-    stack->capacity *= 2;
-    stack->top = realloc(stack->top, stack->capacity * sizeof(char*));
-    if (!stack->top) {
-        printf("Stack Error: failed reallocating memory for top");
-        exit(1);
-    }
-
-    // allocate space for the strings
-    for(int i = stack->count; i < stack->capacity; i++) {
-        stack->top[i] = malloc(sizeof(char) * STACK_ELEM_SIZE);
-        if (!stack->top[i]) {
-            printf("Stack Error: failed reallocating memory for a string");
-            exit(1); 
-        }
-    }
-}
-
-// for the tests
-char* tostring(Stack* stack) 
-{
-    char* stack_buf = malloc(sizeof(char) * 256);
-    strcpy(stack_buf, "stack: ");
-    for (int i = 0; i < stack->count; i++) {
-        char* temp = stack->top[i];
-        strcat(stack_buf, temp);
-    }
-    return stack_buf;
+    return tok;
 }
 
 void printStack(Stack* stack) 
 {
     for (int i = 0; i < stack->count; i++) {
-        printf("%s, ", stack->top[i]);
+        Tok tok = stack->top[i];
+        printf("----------------- %d -------------------\n", i + 1);
+        printf("ID: %s\nVALUE: %.2f\nPREC: %d\n", ID_table[tok.id], tok.value, tok.prec);
     }
-    printf("\n");
 }
 
-char* peek(Stack* stack) 
+Tok peek(Stack* stack) 
 {
     return stack->top[stack->count-1];
 }
@@ -102,14 +62,6 @@ char* peek(Stack* stack)
 // returns true if it is empty
 bool isEmpty(Stack* stack) 
 {
-    if (stack->count == -1 || stack->count == 0) return true;
+    if (stack->count == 0) return true;
     else return false;
-}
-
-void freeStack(Stack* stack) {
-    for (int i = 0; i < stack->capacity; i++) {
-        free(stack->top[i]);
-    }
-
-    free(stack->top);
 }

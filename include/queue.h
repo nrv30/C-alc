@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include "../include/calc.h"
 
 #pragma once
 typedef struct Queue
@@ -6,12 +7,11 @@ typedef struct Queue
     int tail;
     int head;
     int capacity;
-    char** head_pt;
+    Tok* head_pt;
 } Queue;
 
-void freeQueue(Queue* queue);
 void allocQueue(Queue* queue);
-void enQueue(Queue* queue, char* data);
+void enQueue(Queue* queue, Tok tok);
 void resizeQueue(Queue* queue);
-char* deQueue(Queue* queue);
+Tok deQueue(Queue* queue);
 void printQueue(Queue* queue);

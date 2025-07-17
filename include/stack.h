@@ -1,20 +1,17 @@
 #include <stdbool.h>
+#include "../include/calc.h"
 
 #pragma once
 typedef struct 
 {
     int count;
     int capacity;
-    char** top; // pointer to first element in array of char*'s
+    Tok* top;
 } Stack;
 
 void allocStack(Stack* stack);
-void push(Stack* stack, char* op);
-char* pop(Stack* stack);
-char* tostring(Stack* stack);
+void push(Stack* stack, Tok op);
+Tok pop(Stack* stack);
 void printStack(Stack* stack);
-void resizeStack(Stack* stack);
-char* peek(Stack* stack);
+Tok peek(Stack* stack);
 bool isEmpty(Stack* stack);
-void freeStack(Stack* stack);
-
