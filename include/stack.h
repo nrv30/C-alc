@@ -1,7 +1,8 @@
-#include <stdbool.h>
-#include "../include/calc.h"
-
 #pragma once
+
+#include <stdbool.h>
+#include "calc.h"
+
 typedef struct 
 {
     int count;
@@ -14,4 +15,5 @@ void push(Stack* stack, Tok op);
 Tok pop(Stack* stack);
 void printStack(Stack* stack);
 Tok peek(Stack* stack);
+PREC peek_at_prec(Stack* stack);
 bool isEmpty(Stack* stack);

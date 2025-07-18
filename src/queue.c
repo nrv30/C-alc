@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "queue.h"
-#include "../include/calc.h"
+#include "calc.h"
 
 void allocQueue(Queue* queue) 
 {

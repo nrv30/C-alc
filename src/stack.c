@@ -4,11 +4,12 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "../include/stack.h"
+#include "stack.h"
+#include "calc.h"
 
 void allocStack(Stack* stack) 
 {
-    assert(stack->capacity != 0);
+    assert(stack->capacity > 0);
     stack->top = malloc(stack->capacity * sizeof(Tok));
     
     if (!stack->top) {
@@ -57,6 +58,10 @@ void printStack(Stack* stack)
 Tok peek(Stack* stack) 
 {
     return stack->top[stack->count-1];
+}
+
+PREC peek_at_prec(Stack* stack) {
+    return stack->top[stack->count-1].prec;
 }
 
 // returns true if it is empty
