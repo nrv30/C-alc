@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "queue.h"
 #include "calc.h"
 
 void allocQueue(Queue* queue) 
@@ -54,6 +53,6 @@ void printQueue(Queue* queue)
     for (int i = 0; i < queue->tail; i++) {
         Tok tok = queue->head_pt[i];
         printf("----------------- %d -------------------\n", i + 1);
-        printf("ID: %s\nVALUE: %.2f\nPREC: %d\n", ID_table[tok.id], tok.value, tok.prec);
+        printf("VALUE: %.2f\nPREC: %d\n", tok.value, tok.prec);
     }
 }

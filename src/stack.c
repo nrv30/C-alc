@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "stack.h"
 #include "calc.h"
 
 void allocStack(Stack* stack) 
@@ -51,7 +50,7 @@ void printStack(Stack* stack)
     for (int i = 0; i < stack->count; i++) {
         Tok tok = stack->top[i];
         printf("----------------- %d -------------------\n", i + 1);
-        printf("ID: %s\nVALUE: %.2f\nPREC: %d\n", ID_table[tok.id], tok.value, tok.prec);
+        printf("VALUE: %.2f\nPREC: %d\n", tok.value, tok.prec);
     }
 }
 
