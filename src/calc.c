@@ -417,19 +417,28 @@ bool eval_eq() {
 // TODO: Negative was broken
 int main(void) {
     bool should_quit = false;
-    char c, temp;
     do {
+        char msg[256];
+        int c;
+        size_t count = 0;
         printf(" ----------- C-alc -----------\n"
                "     1. Evaluate Equation\n"
                "     2. Quit\n");
-        c = getchar();
-        while ((temp = getchar()) != '\n' && temp != EOF); // clear input buffer
-        if (c == '1') {
+         while ((c = getchar()) != '\n')  {
+            msg[count] = c;
+            count++;
+        }
+        msg[count] = '\0';
+        // printf("c:%s\n", msg);
+        // printf("%zu\n", strlen(msg));
+        if (strlen(msg) > 1) {
+            fprintf(stderr, "ERROR: Invalid option, type 1 or 2\n");
+        } else if (strcmp(msg, "1") == 0) {
             should_quit = eval_eq();
-        } else if (c == '2') {
+        } else if (strcmp(msg, "2") == 0) {
             should_quit = true;
         } else {
-            fprintf(stderr, "ERROR: invalid character\n");
+            fprintf(stderr, "ERROR: invalid option\n");
         }
     } while (!should_quit);
     
