@@ -332,14 +332,13 @@ int generate_tokens(char* eq, Stack* token_stack) {
         tok = eq[i];
         // printf("TOK: %c\n", tok);
         // printf("token_count: %d\n", token_count);
-        if (tok == '-') printf("tok: %c, start_index: %d, i: %d, token_count: %d ", tok, start_index, i, token_count);
         bool minus_is_op = true;
         if (tok == '-' && start_index == i && token_count >= 0) {
             if (peek(token_stack).id != RIGHT_PAREN) {
                 minus_is_op = false;
             }
         }
-        if (((minus_is_op && tok == '-')|| tok == '+' || tok == '*')) 
+        if (((minus_is_op && tok == '-')|| tok == '+' || tok == '*' || tok == '/')) 
         {
             // printf("OP at index %d\n", i);
             if (!handle_arithmetic(eq, &op_index, i, &start_index, 
@@ -418,7 +417,6 @@ bool eval_eq() {
 // TODO: operations below was broken
 // div
 // EXPR
-// negative numbers
 int main(void) {
     bool should_quit = false;
     do {
