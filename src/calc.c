@@ -16,7 +16,7 @@ void print_stack(Stack* stack) {
     for (int i = 0; i < stack->count; i++) {
         Tok tok = stack->top[i];
         char* id_string = get_id_as_string(tok.id);
-        if (strcmp(id_string, "") != 0) {
+        if (strcmp(id_string, "NUM") != 0) {
             sprintf(&msg[strlen(msg)], "%s, ", id_string);
             // printf("MSG: %s", msg);
         } else {
@@ -35,7 +35,7 @@ void print_queue(Queue* queue) {
     for (int i = 0; i < queue->tail; i++) {
         Tok tok = queue->head_pt[i];
         char* id_string = get_id_as_string(tok.id);
-        if (strcmp(id_string, "") != 0) {
+        if (strcmp(id_string, "NUM") != 0) {
             sprintf(&msg[strlen(msg)], "%s, ", id_string);
             // printf("MSG: %s", msg);
         } else {
@@ -65,7 +65,7 @@ char* get_id_as_string(ID id) {
         case EXPR:
             return "**";
         case NUM:
-            return "";
+            return "NUM";
         default:
             return ""; 
     }
@@ -83,9 +83,11 @@ float solve(float a, float b, ID id) {
             return a / b;
         case EXPR:
             return pow(a, b);
+        case LEFT_PAREN:
+        case RIGHT_PAREN:
+        default: return -1;
 
     }
-    return -1.0f;
 }
 
 float eval_queue(Queue* outqueue) {
@@ -96,16 +98,19 @@ float eval_queue(Queue* outqueue) {
     allocStack(&num_stack);
 
     float answer;
-    for (int i = 0; i < outqueue->tail; i++) {
-        Tok tok = outqueue->head_pt[i];
+    int count = outqueue->tail;
+    printf("DEBUG: Count is %d\n", count);
+    for (int i = 0; i < count; i++) {
+        Tok tok = dequeue(outqueue);
+        printf("DEBUG: Tok is %s\n", get_id_as_string(tok.id));
         if(tok.id == NUM) {
             push(&num_stack, tok);
         } else {
-            float a = pop(&num_stack).value;
             float b = pop(&num_stack).value;
+            float a = pop(&num_stack).value;
             fprintf(stderr, "DEBUG: A:%f\tB:%f\n", a, b);
             float temp = solve(a, b, tok.id);
-            if (num_stack.count > 0) {
+            if (outqueue->tail > 0) {
                 push(&num_stack, (Tok) {-1, temp, -1});
             } else {
                 answer = temp;
@@ -129,7 +134,7 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
         Tok tok = token_stack->top[i];
         switch(tok.id) {
             case NUM:
-                enQueue(outqueue, tok);
+                enqueue(outqueue, tok);
                 break;
             case ADD:
             case SUB:
@@ -142,7 +147,7 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
                     do {
                         PREC next_prec = peek(&op_stack).prec;
                         if (next_prec >= tok.prec && next_prec != PAREN) {
-                            enQueue(outqueue, pop(&op_stack));
+                            enqueue(outqueue, pop(&op_stack));
                         } else break;
                     } while(!isEmpty(&op_stack));
 
@@ -158,12 +163,12 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
                     if (next_id == LEFT_PAREN) {
                         pop(&op_stack);
                         break;
-                    } else enQueue(outqueue, pop(&op_stack));
+                    } else enqueue(outqueue, pop(&op_stack));
                 }
                 break;
         }
-        print_queue(outqueue);
-        print_stack(&op_stack);
+        // print_queue(outqueue);
+        // print_stack(&op_stack);
     }
 
     // if the stack is not empty enq everything
@@ -171,7 +176,7 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
         printf("DEBUG: clean stack\n");
         int count = op_stack.count;
         for (int i = 0; i < count; i++) {
-            enQueue(outqueue, pop(&op_stack));
+            enqueue(outqueue, pop(&op_stack));
             print_stack(&op_stack);
         }
     }
@@ -325,7 +330,7 @@ int generate_tokens(char* eq, Stack* token_stack) {
     int token_count = 0;
     for (int i = 0; i < eq_len; i++) {
         tok = eq[i];
-        printf("TOK: %c\n", tok);
+        // printf("TOK: %c\n", tok);
         // printf("token_count: %d\n", token_count);
         bool minus_is_op = true;
         if (tok == '-' && start_index == i && token_count > 0) {
@@ -335,7 +340,7 @@ int generate_tokens(char* eq, Stack* token_stack) {
         }
         if (((minus_is_op && tok == '-')|| tok == '+' || tok == '*')) 
         {
-            printf("OP at index %d\n", i);
+            // printf("OP at index %d\n", i);
             if (!handle_arithmetic(eq, &op_index, i, &start_index, 
                                    &token_count, tok, 
                                    token_stack, eq_len)) 
@@ -409,6 +414,7 @@ bool eval_eq() {
     return true;
 }
 
+// TODO: Negative was broken
 int main(void) {
     bool should_quit = false;
     char c, temp;

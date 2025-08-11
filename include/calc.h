@@ -72,9 +72,9 @@ PREC peek_at_prec(Stack* stack);
 bool isEmpty(Stack* stack);
 
 void allocQueue(Queue* queue);
-void enQueue(Queue* queue, Tok tok);
+void enqueue(Queue* queue, Tok tok);
 void resizeQueue(Queue* queue);
-Tok deQueue(Queue* queue);
+Tok dequeue(Queue* queue);
 void printQueue(Queue* queue);
 #endif
 

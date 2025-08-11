@@ -12,19 +12,19 @@ void allocQueue(Queue* queue)
     queue->head_pt = malloc(sizeof(Tok) * queue->capacity);
 
     if (!queue->head_pt) {
-        printf("QUEUE ERROR: Failed allocating space");
+        fprintf(stderr, "QUEUE ERROR: Failed allocating space");
         exit(1);
     }
 }
 
-void enQueue(Queue* queue, Tok tok) 
+void enqueue(Queue* queue, Tok tok) 
 {
     if(queue->tail == queue->capacity) 
     {
         queue->capacity *= 2;
         queue->head_pt = realloc(queue->head_pt, sizeof(Tok) * queue->capacity);
         if (!queue->head_pt) {
-            printf("QUEUE ERROR: failed reallocating memory for head");
+            fprintf(stderr, "QUEUE ERROR: failed reallocating memory for head");
             exit(1);
         } 
     }
@@ -34,25 +34,16 @@ void enQueue(Queue* queue, Tok tok)
 }
 
 
-Tok deQueue(Queue* queue) 
+Tok dequeue(Queue* queue) 
 {
     assert(queue->tail != 0); // empty queue
 
     Tok tok = queue->head_pt[queue->head];
     queue->head++;
     
-    if (queue->head == queue->tail-1) {
+    if (queue->head == queue->tail) {
         queue->tail = 0;
         queue->head = 0;
     }
     return tok;
-}
-
-void printQueue(Queue* queue) 
-{
-    for (int i = 0; i < queue->tail; i++) {
-        Tok tok = queue->head_pt[i];
-        printf("----------------- %d -------------------\n", i + 1);
-        printf("VALUE: %.2f\nPREC: %d\n", tok.value, tok.prec);
-    }
 }
