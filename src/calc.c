@@ -21,7 +21,7 @@ void print_stack(Stack* stack) {
             // printf("MSG: %s", msg);
         } else {
             char num_string[50];
-            sprintf(num_string, "%f", tok.value);
+            sprintf(num_string, "%g", tok.value);
             sprintf(&msg[strlen(msg)], "%s, ", num_string);
         }
     }
@@ -40,7 +40,7 @@ void print_queue(Queue* queue) {
             // printf("MSG: %s", msg);
         } else {
             char num_string[50];
-            sprintf(num_string, "%f", tok.value);
+            sprintf(num_string, "%g", tok.value);
             sprintf(&msg[strlen(msg)], "%s, ", num_string);
         }
     }
@@ -141,7 +141,7 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
                 } else {
                     do {
                         PREC next_prec = peek(&op_stack).prec;
-                        if (next_prec > tok.prec && next_prec != PAREN) {
+                        if (next_prec >= tok.prec && next_prec != PAREN) {
                             enQueue(outqueue, pop(&op_stack));
                         } else break;
                     } while(!isEmpty(&op_stack));
@@ -154,11 +154,12 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
                 break;
             case RIGHT_PAREN:
                 while (!isEmpty(&op_stack)) {
-                    Tok next_tok = pop(&op_stack);
-                    if (next_tok.id == RIGHT_PAREN) break;
-                    else enQueue(outqueue, pop(&op_stack));
+                    ID next_id = peek(&op_stack).id;
+                    if (next_id == LEFT_PAREN) {
+                        pop(&op_stack);
+                        break;
+                    } else enQueue(outqueue, pop(&op_stack));
                 }
-                pop(&op_stack);
                 break;
         }
         print_queue(outqueue);
@@ -242,8 +243,16 @@ bool gen_and_push_num(char* operand_left, Stack* token_stack) {
 }
 
 void handle_paren(char* eq, int* op_index, int i, int* start_index, 
-                  int* token_count, Stack* token_stack) 
+                  int* token_count, Stack* token_stack, char tok) 
 {
+    if (tok == ')') {
+        char operand_left[MAX_NUMBER];
+        size_t count = i - (*start_index);
+        strncpy(operand_left, eq+(*start_index), count);
+        operand_left[count] = '\0';
+        gen_and_push_num(operand_left, token_stack);
+        // printf("i: %d, op_index: %d, start_index %d\n", i, *op_index, *start_index); exit(1);
+    }
     *op_index = i;
     char paren_buf[MAX_OP];
     strncpy(paren_buf, eq+i, 1);
@@ -259,8 +268,8 @@ bool handle_arithmetic(char* eq, int* op_index, int i, int* start_index, int* to
 {
     if (i != *start_index) {
         *op_index = i;
-        printf("DEBUG: start_index: %d\n", *start_index);
-        printf("DEBUG: i is %d\n", i);
+        // printf("DEBUG: start_index: %d\n", *start_index);
+        // printf("DEBUG: i is %d\n", i);
         size_t len = i - *start_index;
         if (len > MAX_NUMBER - 1) {
             fprintf(stderr, "ERROR: token number %d was %zu bytes too big\n", (*token_count)+1, len);
@@ -332,18 +341,13 @@ int generate_tokens(char* eq, Stack* token_stack) {
                                    token_stack, eq_len)) 
                 return -1;
         }
-        else if ((tok == '(' && i < eq_len-1)|| tok == ')') {
-            // printf("OP at index %d\n", i);
+        else if ((tok == '(' && i < eq_len-1) || (tok == ')' && token_count > 0)) {
             handle_paren(eq, &op_index, i, &start_index, 
-                         &token_count, token_stack);
+                         &token_count, token_stack, tok);
         }
-
     }
 
-    if (op_index < eq_len-1) {
-        handle_last_token(eq, eq_len, op_index, 
-                          token_stack, &token_count);
-    }
+    handle_last_token(eq, eq_len, op_index, token_stack, &token_count);
     
     return token_count;
 }
@@ -383,7 +387,7 @@ bool eval_eq() {
     if (generate_tokens(eq, &token_stack) < 3) {
         // fprintf(stderr, "Error: not a valid equation\n");
         return false;
-    }
+    } 
 
     print_stack(&token_stack);
 
@@ -398,24 +402,28 @@ bool eval_eq() {
     make_output_queue(&token_stack, &outqueue);
     free(token_stack.top);
     print_queue(&outqueue);
+    // exit(1);
 
     float answer = eval_queue(&outqueue);
-    printf("%.5f\n", answer);
+    printf("%g\n", answer);
     return true;
 }
 
 int main(void) {
     bool should_quit = false;
-    char c;
+    char c, temp;
     do {
         printf(" ----------- C-alc -----------\n"
                "     1. Evaluate Equation\n"
                "     2. Quit\n");
         c = getchar();
-        if (c == '2') should_quit = true;
-        else if (c == '1') {
-            while ((c = getchar()) != '\n' && c != EOF); // clear input buffer
+        while ((temp = getchar()) != '\n' && temp != EOF); // clear input buffer
+        if (c == '1') {
             should_quit = eval_eq();
+        } else if (c == '2') {
+            should_quit = true;
+        } else {
+            fprintf(stderr, "ERROR: invalid character\n");
         }
     } while (!should_quit);
     
