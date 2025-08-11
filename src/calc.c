@@ -332,8 +332,9 @@ int generate_tokens(char* eq, Stack* token_stack) {
         tok = eq[i];
         // printf("TOK: %c\n", tok);
         // printf("token_count: %d\n", token_count);
+        if (tok == '-') printf("tok: %c, start_index: %d, i: %d, token_count: %d ", tok, start_index, i, token_count);
         bool minus_is_op = true;
-        if (tok == '-' && start_index == i && token_count > 0) {
+        if (tok == '-' && start_index == i && token_count >= 0) {
             if (peek(token_stack).id != RIGHT_PAREN) {
                 minus_is_op = false;
             }
@@ -390,7 +391,7 @@ bool eval_eq() {
     allocStack(&token_stack);
 
     if (generate_tokens(eq, &token_stack) < 3) {
-        // fprintf(stderr, "Error: not a valid equation\n");
+        fprintf(stderr, "Error: not a valid equation\n");
         return false;
     } 
 
@@ -414,14 +415,17 @@ bool eval_eq() {
     return true;
 }
 
-// TODO: Negative was broken
+// TODO: operations below was broken
+// div
+// EXPR
+// negative numbers
 int main(void) {
     bool should_quit = false;
     do {
         char msg[256];
         int c;
         size_t count = 0;
-        printf(" ----------- C-alc -----------\n"
+        printf(" ----------- cli-(C)alc -----------\n"
                "     1. Evaluate Equation\n"
                "     2. Quit\n");
          while ((c = getchar()) != '\n')  {
