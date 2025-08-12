@@ -12,7 +12,7 @@ void allocStack(Stack* stack)
     stack->top = malloc(stack->capacity * sizeof(Tok));
     
     if (!stack->top) {
-        printf("STACK ERROR: Failed allocating the pointer");
+        fprintf(stderr, "STACK ERROR: Failed allocating the pointer");
     }
 }
 
@@ -24,7 +24,7 @@ void push(Stack* stack, Tok tok)
         stack->top = realloc(stack->top, sizeof(Tok) * stack->capacity); 
         
         if (!stack->top) {
-            printf("STACK ERROR: failed reallocation");
+            fprintf(stderr, "STACK ERROR: failed reallocation");
             exit(1);
         }
     }
@@ -43,15 +43,6 @@ Tok pop(Stack* stack)
     Tok tok = stack->top[stack->count-1];
     stack->count--;
     return tok;
-}
-
-void printStack(Stack* stack) 
-{
-    for (int i = 0; i < stack->count; i++) {
-        Tok tok = stack->top[i];
-        printf("----------------- %d -------------------\n", i + 1);
-        printf("VALUE: %.2f\nPREC: %d\n", tok.value, tok.prec);
-    }
 }
 
 Tok peek(Stack* stack) 
