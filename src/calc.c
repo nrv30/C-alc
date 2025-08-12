@@ -12,7 +12,7 @@
 
 void print_stack(Stack* stack) {
     char msg[256] = "";
-    fprintf(stderr, "DEBUG: printing stack\n");
+    // fprintf(stderr, "DEBUG: printing stack\n");
     for (int i = 0; i < stack->count; i++) {
         Tok tok = stack->top[i];
         char* id_string = get_id_as_string(tok.id);
@@ -31,7 +31,7 @@ void print_stack(Stack* stack) {
 
 void print_queue(Queue* queue) {
     char msg[256] = "";
-    fprintf(stderr, "DEBUG: printing queue\n");
+    // fprintf(stderr, "DEBUG: printing queue\n");
     for (int i = 0; i < queue->tail; i++) {
         Tok tok = queue->head_pt[i];
         char* id_string = get_id_as_string(tok.id);
@@ -45,7 +45,7 @@ void print_queue(Queue* queue) {
         }
     }
 
-    fprintf(stderr, "%s\n", msg);
+    // fprintf(stderr, "%s\n", msg);
 }
 
 char* get_id_as_string(ID id) {
@@ -99,16 +99,16 @@ float eval_queue(Queue* outqueue) {
 
     float answer;
     int count = outqueue->tail;
-    printf("DEBUG: Count is %d\n", count);
+    // printf("DEBUG: Count is %d\n", count);
     for (int i = 0; i < count; i++) {
         Tok tok = dequeue(outqueue);
-        printf("DEBUG: Tok is %s\n", get_id_as_string(tok.id));
+        // printf("DEBUG: Tok is %s\n", get_id_as_string(tok.id));
         if(tok.id == NUM) {
             push(&num_stack, tok);
         } else {
             float b = pop(&num_stack).value;
             float a = pop(&num_stack).value;
-            fprintf(stderr, "DEBUG: A:%f\tB:%f\n", a, b);
+            // fprintf(stderr, "DEBUG: A:%f\tB:%f\n", a, b);
             float temp = solve(a, b, tok.id);
             if (outqueue->tail > 0) {
                 push(&num_stack, (Tok) {-1, temp, -1});
@@ -173,7 +173,7 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
 
     // if the stack is not empty enq everything
     if (!isEmpty(&op_stack)) {
-        printf("DEBUG: clean stack\n");
+        // printf("DEBUG: clean stack\n");
         int count = op_stack.count;
         for (int i = 0; i < count; i++) {
             enqueue(outqueue, pop(&op_stack));
@@ -280,7 +280,7 @@ bool handle_arithmetic(char* eq, int* op_index, int i, int* start_index, int* to
         // printf("DEBUG: start_index: %d\n", *start_index);
         // printf("DEBUG: i is %d\n", i);
         size_t len = i - *start_index;
-        printf("opindex: %d i:%d, start_index:%d\n", *op_index, i, *start_index);
+        // printf("opindex: %d i:%d, start_index:%d\n", *op_index, i, *start_index);
         if (len > MAX_NUMBER - 1) {
             fprintf(stderr, "ERROR: token number %d was %zu bytes too big\n", (*token_count)+1, len);
             return false;
@@ -298,6 +298,7 @@ bool handle_arithmetic(char* eq, int* op_index, int i, int* start_index, int* to
     size_t count;
     if (tok == '*' && (eq[i+1] == '*' && i < (int)eq_len)) {
         count = 2;
+        (*op_index)++;
     } else {
         count = 1;
     }
@@ -306,7 +307,6 @@ bool handle_arithmetic(char* eq, int* op_index, int i, int* start_index, int* to
 
     gen_and_push_op(op_buf, token_stack);
     *start_index = i+count;
-    (*op_index)++;
     (*token_count)+=2;
 
     return true;
@@ -380,7 +380,7 @@ bool read_input(char* eq) {
         }
     }
     eq[i] = '\0';
-    fprintf(stderr, "DEBUG: Equation: %s\n", eq);
+    // fprintf(stderr, "DEBUG: Equation: %s\n", eq);
     return true;
     
 }
@@ -400,7 +400,7 @@ bool eval_eq() {
         return false;
     } 
 
-    print_stack(&token_stack);
+    // print_stack(&token_stack);
 
     if (!validate_parens(&token_stack)) return false;
 
@@ -412,7 +412,7 @@ bool eval_eq() {
 
     make_output_queue(&token_stack, &outqueue);
     free(token_stack.top);
-    print_queue(&outqueue);
+    // print_queue(&outqueue);
     // exit(1);
 
     float answer = eval_queue(&outqueue);
