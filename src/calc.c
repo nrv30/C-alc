@@ -411,12 +411,14 @@ bool eval_eq() {
     allocQueue(&outqueue);
 
     make_output_queue(&token_stack, &outqueue);
+    print_stack(&token_stack);
     free(token_stack.top);
-    // print_queue(&outqueue);
+    print_queue(&outqueue);
     // exit(1);
 
     float answer = eval_queue(&outqueue);
     printf("%g\n", answer);
+    free(outqueue.head_pt);
     return true;
 }
 
