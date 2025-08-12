@@ -18,7 +18,7 @@ void allocStack(Stack* stack)
 
 void push(Stack* stack, Tok tok) 
 {
-    int index;
+    size_t index;
     if(stack->count == stack->capacity) {
         stack->capacity *=2;
         stack->top = realloc(stack->top, sizeof(Tok) * stack->capacity); 

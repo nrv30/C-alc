@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <assert.h>
+#include <stddef.h>
 #include "calc.h"
 
 #define MAX_EQUATION 256
@@ -13,7 +14,7 @@
 void print_stack(Stack* stack) {
     char msg[256] = "";
     // fprintf(stderr, "DEBUG: printing stack\n");
-    for (int i = 0; i < stack->count; i++) {
+    for (size_t i = 0; i < stack->count; i++) {
         Tok tok = stack->top[i];
         char* id_string = get_id_as_string(tok.id);
         if (strcmp(id_string, "NUM") != 0) {
@@ -32,7 +33,7 @@ void print_stack(Stack* stack) {
 void print_queue(Queue* queue) {
     char msg[256] = "";
     // fprintf(stderr, "DEBUG: printing queue\n");
-    for (int i = 0; i < queue->tail; i++) {
+    for (size_t i = 0; i < queue->tail; i++) {
         Tok tok = queue->head_pt[i];
         char* id_string = get_id_as_string(tok.id);
         if (strcmp(id_string, "NUM") != 0) {
@@ -98,9 +99,9 @@ float eval_queue(Queue* outqueue) {
     allocStack(&num_stack);
 
     float answer;
-    int count = outqueue->tail;
+    size_t count = outqueue->tail;
     // printf("DEBUG: Count is %d\n", count);
-    for (int i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         Tok tok = dequeue(outqueue);
         // printf("DEBUG: Tok is %s\n", get_id_as_string(tok.id));
         if(tok.id == NUM) {
@@ -130,7 +131,7 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
     };
     allocStack(&op_stack);
 
-    for (int i = 0; i < token_stack->count; i++) {
+    for (size_t i = 0; i < token_stack->count; i++) {
         Tok tok = token_stack->top[i];
         switch(tok.id) {
             case NUM:
@@ -174,8 +175,8 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
     // if the stack is not empty enq everything
     if (!isEmpty(&op_stack)) {
         // printf("DEBUG: clean stack\n");
-        int count = op_stack.count;
-        for (int i = 0; i < count; i++) {
+        size_t count = op_stack.count;
+        for (size_t i = 0; i < count; i++) {
             enqueue(outqueue, pop(&op_stack));
             print_stack(&op_stack);
         }
@@ -185,10 +186,10 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
 }
 
 bool validate_parens(Stack* token_stack) {
-    for (int i = 0; i < token_stack->count; i++) {
+    for (size_t i = 0; i < token_stack->count; i++) {
         if (token_stack->top[i].id == LEFT_PAREN) {
             bool is_valid = false;
-            for (int j = i+1; j < token_stack->count; j++) {
+            for (size_t j = i+1; j < token_stack->count; j++) {
                 if (token_stack->top[j].id == RIGHT_PAREN) {
                     is_valid = true;
                     break;
@@ -231,10 +232,10 @@ void gen_and_push_op(char* op, Stack* token_stack) {
     push(token_stack, op_token);
 }
 
-bool gen_and_push_num(char* operand_left, Stack* token_stack) {
-    float val = atof(operand_left);
-    if (val == 0.0f && strcmp(operand_left, "0") != 0) {
-        fprintf(stderr, "ERROR: \"%s\" is not a valid number\n", operand_left);
+bool gen_and_push_num(char* num_buff, Stack* token_stack) {
+    float val = atof(num_buff);
+    if (val == 0.0f && strcmp(num_buff, "0") != 0) {
+        fprintf(stderr, "ERROR: \"%s\" is not a valid number\n", num_buff);
         return false;
     } else {
         Tok tok = {
@@ -247,118 +248,76 @@ bool gen_and_push_num(char* operand_left, Stack* token_stack) {
     }
 }
 
-void handle_paren(char* eq, int* op_index, int i, int* start_index, 
-                  int* token_count, Stack* token_stack, char tok) 
-{
-    if (tok == ')') {
-        char operand_left[MAX_NUMBER];
-        size_t count = i - (*start_index);
-        strncpy(operand_left, eq+(*start_index), count);
-        operand_left[count] = '\0';
-        gen_and_push_num(operand_left, token_stack);
-        // printf("i: %d, op_index: %d, start_index %d\n", i, *op_index, *start_index); exit(1);
+// returns number of bystes offset or -1
+size_t parse_num_tostring (char c, size_t i, char* num_buff, char* eq, size_t eq_len) {
+    bool could_be_decimal = true;
+    if (c == '.') {
+        could_be_decimal = false;
     }
-    *op_index = i;
-    char paren_buf[MAX_OP];
-    strncpy(paren_buf, eq+i, 1);
-    paren_buf[1] = '\0';
-    // printf("PAREN: %s\n", paren_buf);
-    gen_and_push_op(paren_buf, token_stack);
-    *start_index = i + 1;
-    (*token_count)++;
-}
 
-bool handle_arithmetic(char* eq, int* op_index, int i, int* start_index, int* token_count, 
-                       char tok, Stack* token_stack, size_t eq_len) 
-{
-    if (*token_count > 0 && peek(token_stack).id == EXPR) {
-        return true; 
-        // (*start_index)++;
+    size_t num_size = 1;
+    if (i == eq_len) {
+        strncpy(num_buff, eq+i, num_size);
+        num_buff[num_size] = '\0';
+        return num_size;
     }
-    if (i != *start_index) {
-        *op_index = i;
-        // printf("DEBUG: start_index: %d\n", *start_index);
-        // printf("DEBUG: i is %d\n", i);
-        size_t len = i - *start_index;
-        // printf("opindex: %d i:%d, start_index:%d\n", *op_index, i, *start_index);
-        if (len > MAX_NUMBER - 1) {
-            fprintf(stderr, "ERROR: token number %d was %zu bytes too big\n", (*token_count)+1, len);
-            return false;
+    char next;
+    for (size_t j = i+1; j < eq_len; j++) {
+        next = eq[j]; 
+        if (could_be_decimal) {
+            if (next == '.') {
+                if (next == '.') could_be_decimal = false;
+                num_size++;
+            }
         } else {
-            char operand_left[MAX_NUMBER];
-            // printf("I: %d, LEN: %zu\n", i, len);
-            strncpy(operand_left, eq+(i-len), len);
-            operand_left[len] = '\0';
-            // printf("op_left: %s\n", operand_left);
-            if (!gen_and_push_num(operand_left, token_stack)) return false;
+            if (isdigit(next) != 0) {
+                num_size++;
+            }
         }
-    }
 
-    char op_buf[MAX_OP];
-    size_t count;
-    if (tok == '*' && (eq[i+1] == '*' && i < (int)eq_len)) {
-        count = 2;
-        (*op_index)++;
-    } else {
-        count = 1;
-    }
-    strncpy(op_buf, eq+i, count);
-    op_buf[count] = '\0';
-
-    gen_and_push_op(op_buf, token_stack);
-    *start_index = i+count;
-    (*token_count)+=2;
-
-    return true;
+        if (num_size > MAX_NUMBER) return -1;
+        strncpy(num_buff, eq+i, num_size);
+        num_buff[num_size] = '\0';
+    } 
+    return num_size;
 }
 
-bool handle_last_token(char* eq, size_t eq_len, int op_index, 
-                       Stack* token_stack, int* token_count) 
-{
-    char end_operand[MAX_NUMBER];
-    // printf("EQ_LEN: %zu OP_INDEX: %d", eq_len, op_index);
-    size_t count = eq_len-1-op_index;
-    if (count > MAX_NUMBER) return false;
-    strncpy(end_operand, eq+op_index+1, count);
-    end_operand[count] = '\0';
-    if (!gen_and_push_num(end_operand, token_stack)) return false;
-    (*token_count)++;
-    return true;
+size_t parse_op_tostring(char c, size_t i, char* op_buff, char* eq, size_t eq_len) {
+    size_t op_size = 1;
+    if (c == '*' && i+1 < eq_len && eq[i+1] == '*') op_size++;
+    strncpy(op_buff, eq+i, op_size);
+    op_buff[op_size] = '\0';
+    return op_size;
 }
 
 // return the number of tokens
-int generate_tokens(char* eq, Stack* token_stack) {
+size_t tokenize_eq(char* eq, Stack* token_stack) {
+    size_t eq_len = strlen(eq);
+    char c;
+    size_t token_count = 0;
+    for (size_t i = 0; i < eq_len; i++) {
+        c = eq[i];
+        printf("c: %c\n", c);
+        if (c == '+' || c == '*' || c == '/' || 
+           (c == '-' && token_stack->count > 1 && 
+            peek(token_stack).id == NUM) ||
+            c == '(' || c == ')') {
+                char op_buff[MAX_OP];
+                size_t offset = parse_op_tostring(c, i, op_buff, eq, eq_len);
+                gen_and_push_op(op_buff, token_stack);
+                token_count++;
+                printf("offset: %zu\n", offset);
+                i += offset-1;
 
-    char tok;
-    int start_index = 0;
-    int eq_len = strlen(eq);
-    int op_index;
-    int token_count = 0;
-    for (int i = 0; i < eq_len; i++) {
-        tok = eq[i];
-        // printf("TOK: %c\n", tok);
-        // printf("token_count: %d\n", token_count);
-        bool minus_is_op = true;
-        if (tok == '-' && start_index == i && token_count >= 0) {
-            if (peek(token_stack).id != RIGHT_PAREN) {
-                minus_is_op = false;
-            }
-        }
-        if (((minus_is_op && tok == '-')|| tok == '+' || tok == '*' || tok == '/')) 
-        {
-            // printf("OP at index %d\n", i);
-            if (!handle_arithmetic(eq, &op_index, i, &start_index, 
-                                   &token_count, tok, 
-                                   token_stack, eq_len)) 
-                return -1;
-        }
-        else if ((tok == '(' && i < eq_len-1) || (tok == ')' && token_count > 0)) {
-            handle_paren(eq, &op_index, i, &start_index, 
-                         &token_count, token_stack, tok);
+        } else if (isdigit(c) != 0 || c == '.' || c == '-') {
+            char num_buff[MAX_NUMBER];
+            size_t offset = parse_num_tostring(c, i, num_buff, eq, eq_len);
+            if (!gen_and_push_num(num_buff, token_stack)) return -1;
+            else token_count++;
+            printf("offset: %zu\n", offset);
+            i += offset-1;
         }
     }
-
-    handle_last_token(eq, eq_len, op_index, token_stack, &token_count);
     
     return token_count;
 }
@@ -367,8 +326,8 @@ bool read_input(char* eq) {
     printf("Max Equation size is %d bytes\n", MAX_EQUATION);
     printf("Max Number size is %d bytes\n", MAX_NUMBER);
     printf(">> ");
-    int i = 0;
-    int c;
+    size_t i = 0;
+    char c;
     while((c = getchar()) != '\n') {
         if (i == MAX_EQUATION-1) {
             fprintf(stderr, "ERROR: Your equation is too big\n");
@@ -394,8 +353,10 @@ bool eval_eq() {
         .count = 0,
     };
     allocStack(&token_stack);
-
-    if (generate_tokens(eq, &token_stack) < 3) {
+    tokenize_eq(eq, &token_stack); 
+    print_stack(&token_stack);
+    exit(1);
+    if (tokenize_eq(eq, &token_stack) < 3) {
         fprintf(stderr, "Error: not a valid equation\n");
         return false;
     } 
@@ -422,8 +383,6 @@ bool eval_eq() {
     return true;
 }
 
-// TODO: operations below was broken
-// EXPR
 int main(void) {
     bool should_quit = false;
     do {
