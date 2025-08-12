@@ -271,11 +271,16 @@ void handle_paren(char* eq, int* op_index, int i, int* start_index,
 bool handle_arithmetic(char* eq, int* op_index, int i, int* start_index, int* token_count, 
                        char tok, Stack* token_stack, size_t eq_len) 
 {
+    if (*token_count > 0 && peek(token_stack).id == EXPR) {
+        return true; 
+        // (*start_index)++;
+    }
     if (i != *start_index) {
         *op_index = i;
         // printf("DEBUG: start_index: %d\n", *start_index);
         // printf("DEBUG: i is %d\n", i);
         size_t len = i - *start_index;
+        printf("opindex: %d i:%d, start_index:%d\n", *op_index, i, *start_index);
         if (len > MAX_NUMBER - 1) {
             fprintf(stderr, "ERROR: token number %d was %zu bytes too big\n", (*token_count)+1, len);
             return false;
@@ -301,6 +306,7 @@ bool handle_arithmetic(char* eq, int* op_index, int i, int* start_index, int* to
 
     gen_and_push_op(op_buf, token_stack);
     *start_index = i+count;
+    (*op_index)++;
     (*token_count)+=2;
 
     return true;
@@ -415,7 +421,6 @@ bool eval_eq() {
 }
 
 // TODO: operations below was broken
-// div
 // EXPR
 int main(void) {
     bool should_quit = false;
