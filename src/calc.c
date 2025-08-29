@@ -138,6 +138,10 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
         Tok tok = token_stack->top[i];
         switch(tok.id) {
             case NUM:
+                if (tok.value == 0 && peek(token_stack).id == DIV) {
+                    fprintf(stderr, "ERROR: Dividing by 0\n");
+                    return;
+                }
                 enqueue(outqueue, tok);
                 break;
             case ADD:
@@ -197,6 +201,15 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
     }
 
     free(op_stack.top);
+}
+
+bool validate_division(Stack* token_stack) {
+    for (size_t i = 0; i < token_stack->count; i++) {
+        if (token_stack->top[i].id == DIV && i < token_stack->count - 1 
+            && token_stack->top[i+1].value == 0) 
+            return false;
+    }
+    return true;
 }
 
 bool validate_parens(Stack* token_stack) {
@@ -275,9 +288,9 @@ size_t parse_num_tostring (char c, size_t i, char* num_buff, char* eq, size_t eq
     size_t num_size = 1;
     char next;
     for (size_t j = i+1; j < eq_len; j++) {
-        printf("was this entered\n");
+        // printf("was this entered\n");
         next = eq[j]; 
-        printf("next: %c\n", next);
+        // printf("next: %c\n", next);
         if (could_be_decimal && next == '.') {
             could_be_decimal = false;
             num_size++;
@@ -384,10 +397,15 @@ bool eval_eq() {
         fprintf(stderr, "Error: not a valid equation\n");
         return true;
     }
-    print_stack(&token_stack);
+    // print_stack(&token_stack);
 
     if (!validate_parens(&token_stack)) {
         fprintf(stderr, "Error: uneven parens\n");
+        return true;
+    }
+
+    if (!validate_division(&token_stack)) {
+        fprintf(stderr, "Error: dividing by 0\n");
         return true;
     }
 
@@ -400,7 +418,7 @@ bool eval_eq() {
     make_output_queue(&token_stack, &outqueue);
     // print_stack(&token_stack);
     free(token_stack.top);
-    print_queue(&outqueue);
+    // print_queue(&outqueue);
 
     // exit(1);
 
