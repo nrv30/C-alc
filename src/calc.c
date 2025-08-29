@@ -33,6 +33,7 @@ void print_stack(Stack* stack) {
 }
 
 void print_queue(Queue* queue) {
+    // printf("reached\n");
     char msg[256] = "";
     // fprintf(stderr, "DEBUG: printing queue\n");
     for (size_t i = 0; i < queue->tail; i++) {
@@ -48,7 +49,7 @@ void print_queue(Queue* queue) {
         }
     }
 
-    // fprintf(stderr, "%s\n", msg);
+    fprintf(stderr, "%s\n", msg);
 }
 
 char* get_id_as_string(ID id) {
@@ -125,7 +126,7 @@ float eval_queue(Queue* outqueue) {
     return answer;
 }
 
-// 1 + (2*2)
+// this is deleting on operator
 void make_output_queue(Stack* token_stack, Queue* outqueue) {
     Stack op_stack = {
         .capacity = 10,
@@ -152,7 +153,6 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
                         enqueue(outqueue, pop(&op_stack));
                     } else break;
                 } while(!isEmpty(&op_stack));
-                
                 push(&op_stack, tok);
             }
             break;
@@ -166,6 +166,7 @@ void make_output_queue(Stack* token_stack, Queue* outqueue) {
                             enqueue(outqueue, pop(&op_stack));
                         } else break;
                     } while (!isEmpty(&op_stack));
+                    push(&op_stack, tok);                    
                 }
                 break;
             case LEFT_PAREN:
@@ -282,11 +283,10 @@ size_t parse_num_tostring (char c, size_t i, char* num_buff, char* eq, size_t eq
             num_size++;
         }
         if (isdigit(next) != 0) {
-                printf("reached\n");
-                // exit(1)
-                num_size++;
+            // printf("reached\n");
+            num_size++;
         } else {
-            printf("invalid character\n");
+            // printf("invalid character\n");
             break;
         } 
     } 
@@ -314,14 +314,14 @@ int tokenize_eq(char* eq, Stack* token_stack) {
     char c;
     size_t token_count = 0;
     for (size_t i = 0; i < eq_len;) {
-        printf("i: %zu\n", i);
+        // printf("i: %zu\n", i);
         c = eq[i];
-        printf("c: %c\n", c);
+        // printf("c: %c\n", c);
         if (c == '+' || c == '*' || c == '/' || 
            (c == '-' && token_stack->count >= 1 && 
             peek(token_stack).id == NUM) ||
             c == '(' || c == ')') {
-                printf("went to operators\n");
+                // printf("went to operators\n");
                 char op_buff[MAX_OP];
                 size_t offset = parse_op_tostring(c, i, op_buff, eq, eq_len);
                 gen_and_push_op(op_buff, token_stack);
@@ -330,7 +330,7 @@ int tokenize_eq(char* eq, Stack* token_stack) {
                 i += offset;
 
         } else if (isdigit(c) != 0 || c == '.' || c == '-') {
-            printf("went to numbers\n");
+            // printf("went to numbers\n");
             char num_buff[MAX_NUMBER];
             size_t offset = parse_num_tostring(c, i, num_buff, eq, eq_len);
             if (!gen_and_push_num(num_buff, token_stack)) return -1;
@@ -339,6 +339,7 @@ int tokenize_eq(char* eq, Stack* token_stack) {
             i += offset;
             // printf("offset: %zu\n", offset);
         } else {
+            fprintf(stderr, "Invalid character `%c`\n", c);
             return -1;
         }
     }
@@ -361,7 +362,7 @@ bool read_input(char* eq) {
         }
     }
     eq[i] = '\0';
-    fprintf(stderr, "DEBUG: Equation: %s\n", eq);
+    // fprintf(stderr, "DEBUG: Equation: %s\n", eq);
     return true;
 }
 
@@ -385,9 +386,10 @@ bool eval_eq() {
     }
     print_stack(&token_stack);
 
-    // print_stack(&token_stack);
-
-    if (!validate_parens(&token_stack)) return true;
+    if (!validate_parens(&token_stack)) {
+        fprintf(stderr, "Error: uneven parens\n");
+        return true;
+    }
 
     Queue outqueue = {
         .capacity = 10,
@@ -398,7 +400,9 @@ bool eval_eq() {
     make_output_queue(&token_stack, &outqueue);
     // print_stack(&token_stack);
     free(token_stack.top);
-    // print_queue(&outqueue);
+    print_queue(&outqueue);
+
+    // exit(1);
 
     float answer = eval_queue(&outqueue);
     printf("%g\n", answer);
