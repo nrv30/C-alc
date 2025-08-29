@@ -49,7 +49,7 @@ typedef struct
 bool eval_eq();
 bool read_input(char* eq);
 bool gen_and_push_num(char* operand_left, Stack* token_stack);
-size_t tokenize_eq(char* eq, Stack* token_stack);
+int tokenize_eq(char* eq, Stack* token_stack);
 void gen_and_push_op(char* op, Stack* token_stack);
 size_t parse_op_tostring(char c, size_t i, char* op_buff, char* eq, size_t eq_len);
 size_t parse_num_tostring (char c, size_t i, char* num_buff, char* eq, size_t eq_len);
