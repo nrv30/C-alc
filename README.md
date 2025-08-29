@@ -7,6 +7,7 @@
     * <https://www.youtube.com/watch?v=ceu-7gV1wd0&t=2512s>
     * Using array-based stack & queue
 * supports basic operations ``+,-,*,/,()``
-* incomplete support for exponent with ``**``
+* support for exponents with ``**``
+* Strives for good error handling
 
 Build Example: ``gcc -I ../include calc.c stack.c queue.c -o calc``
